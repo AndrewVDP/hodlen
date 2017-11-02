@@ -25,11 +25,11 @@
       "type": "function"
     }
   ],
-  "bytecode": "0x60606040523415600e57600080fd5b60898061001c6000396000f300606060405263ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166396e4ee3d8114603b57600080fd5b60476004356024356059565b60405190815260200160405180910390f35b02905600a165627a7a72305820882144b9fa8eb6fd76232d28eaf9aec9a69762c6fc73cff2548e7273b5ff70810029",
-  "deployedBytecode": "0x606060405263ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166396e4ee3d8114603b57600080fd5b60476004356024356059565b60405190815260200160405180910390f35b02905600a165627a7a72305820882144b9fa8eb6fd76232d28eaf9aec9a69762c6fc73cff2548e7273b5ff70810029",
-  "sourceMap": "25:143:0:-;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "25:143:0:-;;;;;;;;;;;;;;;;;46:120;;;;;;;;;;;;;;;;;;;;;;;;139:23;;46:120::o",
-  "source": "pragma solidity ^0.4.2;\n\nlibrary ConvertLib{\n\tfunction convert(uint amount,uint conversionRate) returns (uint convertedAmount)\n\t{\n\t\treturn amount * conversionRate;\n\t}\n}\n",
+  "bytecode": "0x60606040523415600e57600080fd5b60898061001c6000396000f300606060405263ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166396e4ee3d8114603b57600080fd5b60476004356024356059565b60405190815260200160405180910390f35b02905600a165627a7a72305820b571d9482095b69c64755cfd0385b435bf1fcdf5a7f726da5c7cbdb0b3a3be7f0029",
+  "deployedBytecode": "0x606060405263ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166396e4ee3d8114603b57600080fd5b60476004356024356059565b60405190815260200160405180910390f35b02905600a165627a7a72305820b571d9482095b69c64755cfd0385b435bf1fcdf5a7f726da5c7cbdb0b3a3be7f0029",
+  "sourceMap": "25:150:0:-;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "25:150:0:-;;;;;;;;;;;;;;;;;46:127;;;;;;;;;;;;;;;;;;;;;;;;146:23;;46:127::o",
+  "source": "pragma solidity ^0.4.2;\n\nlibrary ConvertLib{\n\tfunction convert(uint amount,uint conversionRate) public returns (uint convertedAmount)\n\t{\n\t\treturn amount * conversionRate;\n\t}\n}\n",
   "sourcePath": "/Users/avandepoel/code/drew/skadoosh/contracts/ConvertLib.sol",
   "ast": {
     "attributes": {
@@ -168,17 +168,17 @@
                         },
                         "id": 7,
                         "name": "ElementaryTypeName",
-                        "src": "105:4:0"
+                        "src": "112:4:0"
                       }
                     ],
                     "id": 8,
                     "name": "VariableDeclaration",
-                    "src": "105:20:0"
+                    "src": "112:20:0"
                   }
                 ],
                 "id": 9,
                 "name": "ParameterList",
-                "src": "104:22:0"
+                "src": "111:22:0"
               },
               {
                 "children": [
@@ -214,7 +214,7 @@
                             },
                             "id": 10,
                             "name": "Identifier",
-                            "src": "139:6:0"
+                            "src": "146:6:0"
                           },
                           {
                             "attributes": {
@@ -228,45 +228,45 @@
                             },
                             "id": 11,
                             "name": "Identifier",
-                            "src": "148:14:0"
+                            "src": "155:14:0"
                           }
                         ],
                         "id": 12,
                         "name": "BinaryOperation",
-                        "src": "139:23:0"
+                        "src": "146:23:0"
                       }
                     ],
                     "id": 13,
                     "name": "Return",
-                    "src": "132:30:0"
+                    "src": "139:30:0"
                   }
                 ],
                 "id": 14,
                 "name": "Block",
-                "src": "128:38:0"
+                "src": "135:38:0"
               }
             ],
             "id": 15,
             "name": "FunctionDefinition",
-            "src": "46:120:0"
+            "src": "46:127:0"
           }
         ],
         "id": 16,
         "name": "ContractDefinition",
-        "src": "25:143:0"
+        "src": "25:150:0"
       }
     ],
     "id": 17,
     "name": "SourceUnit",
-    "src": "0:169:0"
+    "src": "0:176:0"
   },
   "networks": {
-    "1509552688937": {
+    "1509592074956": {
       "events": {},
       "links": {},
-      "address": "0x8506dd3585b085ab4d49ce8e8dfb2d8b2c4bc37d"
+      "address": "0x30286489f1da072370d7e9f98d83542459799a5d"
     }
   },
   "schemaVersion": "1.0.0",
-  "updatedAt": "2017-11-01T16:59:38.888Z"
+  "updatedAt": "2017-11-02T03:28:35.007Z"
 }

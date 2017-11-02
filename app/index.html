@@ -1,23 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MetaCoin - Truffle Webpack Demo w/ Frontend</title>
+  <title>Skadoosh</title>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
   <script src="./app.js"></script>
 </head>
 <body>
-  <h1>MetaCoin</h1>
-  <h2>Example Truffle Dapp</h2>
+  <h1>Skadoosh</h1>
+  <br>
+  <h2>Ethereum Payroll Dapp</h2>
+  <h3>Account balance: <span class="black"><span id="accountBalance"></span> Eth</span></h3>
+
+  <h3><span class="black">Create New Employee:</span></h3>
+  <label for="employeeAddress">Address:</label><input type="text" id="employeeAddress" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
+  <br><label for="employeeRate">Hourly Rate:</label><input type="text" id="employeeRate" placeholder="e.g., 21.36"></input>
+  <br><br>
+  <button id="addEmployee" onclick="App.insertEmployee()">Insert Employee</button>
+  <br><br>
+  
+  <h3><span class="black">Log Hours:</span></h3>
+  <label for="hours">Hours:</label><input type="text" id="hours" placeholder="e.g., 1.2"></input>
+  <br><br>
+  <button id="logHours" onclick="App.logHours()">Submit Hours</button>
+
+  <h3><span class="black">Deposit Eth</span></h3>
+  <label for="ethDeposit">Amount:</label><input type="text" id="ethDeposit" placeholder="e.g., 95"></input>
+  <br><br><button id="deposit" onclick="App.depositEth()">Deposit</button>
+
+
+  <br><br>
+  <br><br>
+  <br><br>
+  
+  <!-- start of example project -->
+
   <h3>You have <span class="black"><span id="balance"></span> META</span></h3>
 
-  <br>
-  <h1>Send MetaCoin</h1>
+  <br><h1>Send MetaCoin</h1>
   <br><label for="amount">Amount:</label><input type="text" id="amount" placeholder="e.g., 95"></input>
   <br><label for="receiver">To Address:</label><input type="text" id="receiver" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
   <br><br><button id="send" onclick="App.sendCoin()">Send MetaCoin</button>
+  
   <br><br>
   <span id="status"></span>
   <br>
   <span class="hint"><strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
+  <br><br>
+
 </body>
 </html>

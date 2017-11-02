@@ -26,7 +26,7 @@ contract Payroll {
     contractName = _name;
   }
   
-  function depositFunds() public payable {
+  function deposit() public payable {
 
   }
 
@@ -34,7 +34,7 @@ contract Payroll {
   * getters
   */
 
-  function viewFunds() public constant returns(uint) {
+  function getBalance() public constant returns(uint) {
     return this.balance;
   }
 

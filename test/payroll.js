@@ -14,10 +14,8 @@ contract('Payroll', (accounts) => {
       });
   });
 
-
-
   it('should confirm contract is deployed with 0 eth', () => {
-    return Payroll.deployed().then(instance => instance.viewFunds.call())
+    return Payroll.deployed().then(instance => instance.getBalance.call())
       .then(balance => {
         assert.equal(balance.valueOf(), 0, '0 wasn\'t in the contract');
       });
@@ -27,9 +25,9 @@ contract('Payroll', (accounts) => {
     let inst;
     return Payroll.deployed().then(instance => {
       inst = instance;
-      return inst.depositFunds({value: 1000});
+      return inst.deposit({value: 1000});
     })
-    .then(data => inst.viewFunds.call())
+    .then(data => inst.getBalance.call())
     .then(balance => {
       assert.equal(balance.valueOf(), 1000, '1000 was not deposited');
     })

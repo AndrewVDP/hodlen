@@ -7,9 +7,11 @@ import { default as contract } from 'truffle-contract'
 
 // Import our contract artifacts and turn them into usable abstractions.
 import metacoin_artifacts from '../../build/contracts/MetaCoin.json'
+import payroll_artifacts from '../../build/contracts/Payroll.json'
 
 // MetaCoin is our usable abstraction, which we'll use through the code below.
 var MetaCoin = contract(metacoin_artifacts);
+var Payroll = contract(payroll_artifacts);
 
 // The following code is simple to show off interacting with your contracts.
 // As your needs grow you will likely need to change its form and structure.
@@ -23,6 +25,7 @@ window.App = {
 
     // Bootstrap the MetaCoin abstraction for Use.
     MetaCoin.setProvider(web3.currentProvider);
+    Payroll.setProvider(web3.currentProvider);
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
@@ -51,16 +54,16 @@ window.App = {
   refreshBalance: function() {
     var self = this;
 
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
+    var inst;
+    Payroll.deployed().then(function(instance) {
+      inst = instance;
+      return inst.getBalance({ from: account });
     }).then(function(value) {
-      var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
+      var balance = document.getElementById("accountBalance");
+      balance.innerHTML = value.valueOf();
     }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
+      console.log('Error getting balance', e);
+      // self.setStatus("Error getting balance; see log.");
     });
   },
 
@@ -75,7 +78,7 @@ window.App = {
     var meta;
     MetaCoin.deployed().then(function(instance) {
       meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
+      return meta.sendCoin(receiver, amount, { from: account });
     }).then(function() {
       self.setStatus("Transaction complete!");
       self.refreshBalance();
@@ -83,7 +86,52 @@ window.App = {
       console.log(e);
       self.setStatus("Error sending coin; see log.");
     });
+  },
+
+  insertEmployee: function() {
+    var self = this;
+
+    var rate = parseInt(document.getElementById("employeeRate").value);
+    var address = document.getElementById("employeeAddress").value;
+
+    Payroll.deployed().then(function(instance) {
+      return instance.newEmployee.call(address, rate, { from: account });
+    }).then(function(result) {
+      console.log('success', result);
+    }).catch(function(e) {
+      console.log('error when trying to create employee:', e);
+    });
+  },
+
+  logHours: function() {
+    var self = this;
+
+    var hours = parseInt(document.getElementById('hours').value);
+
+    Payroll.deployed().then(function(instance) {
+      instance.logHours.call(hours, { from: account })
+    }).then(function(result) {
+      console.log('success', result);
+    }).catch(function(e) {
+      console.log('error loggin hours', e);
+    })
+  },
+
+  depositEth: function() {
+    var self = this;
+
+    var eth = parseInt(document.getElementById('ethDeposit').value);
+
+    Payroll.deployed().then(function(instance) {
+      return instance.deposit({ value: 1000, from: account })
+    }).then(function(result) {
+      self.refreshBalance();
+      console.log('eth should have been deposited');
+    }).catch(function(e) {
+      console.log('Error depositing eth', e);
+    })
   }
+
 };
 
 window.addEventListener('load', function() {
