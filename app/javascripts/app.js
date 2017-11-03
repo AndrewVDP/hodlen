@@ -1,21 +1,12 @@
-// Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
 
-// Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
-// Import our contract artifacts and turn them into usable abstractions.
-import metacoin_artifacts from '../../build/contracts/MetaCoin.json'
 import payroll_artifacts from '../../build/contracts/Payroll.json'
 
-// MetaCoin is our usable abstraction, which we'll use through the code below.
-var MetaCoin = contract(metacoin_artifacts);
 var Payroll = contract(payroll_artifacts);
 
-// The following code is simple to show off interacting with your contracts.
-// As your needs grow you will likely need to change its form and structure.
-// For application bootstrapping, check out window.addEventListener below.
 var accounts;
 var account;
 
@@ -23,11 +14,9 @@ window.App = {
   start: function() {
     var self = this;
 
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
     Payroll.setProvider(web3.currentProvider);
 
-    // Get the initial account balance so it can be displayed.
+    // Get the initial account balance in you ethereum client.
     web3.eth.getAccounts(function(err, accs) {
       if (err != null) {
         alert("There was an error fetching your accounts.");
@@ -41,7 +30,10 @@ window.App = {
 
       accounts = accs;
       account = accounts[0];
-
+      
+      var devAccounts = document.getElementById("devAccounts");
+      devAccounts.innerHTML = accs;
+      
       self.refreshBalance();
     });
   },
@@ -49,6 +41,11 @@ window.App = {
   setStatus: function(message) {
     var status = document.getElementById("status");
     status.innerHTML = message;
+  },
+
+  setEmployeeInfo: function(message) {
+    var employeeView = document.getElementById("employeeView");
+    employeeView.innerHTML = message;
   },
 
   refreshBalance: function() {
@@ -63,28 +60,6 @@ window.App = {
       balance.innerHTML = value.valueOf();
     }).catch(function(e) {
       console.log('Error getting balance', e);
-      // self.setStatus("Error getting balance; see log.");
-    });
-  },
-
-  sendCoin: function() {
-    var self = this;
-
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
-
-    this.setStatus("Initiating transaction... (please wait)");
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, { from: account });
-    }).then(function() {
-      self.setStatus("Transaction complete!");
-      self.refreshBalance();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error sending coin; see log.");
     });
   },
 
@@ -95,7 +70,7 @@ window.App = {
     var address = document.getElementById("employeeAddress").value;
 
     Payroll.deployed().then(function(instance) {
-      return instance.newEmployee.call(address, rate, { from: account });
+      return instance.newEmployee(address, rate, { from: account });
     }).then(function(result) {
       console.log('success', result);
     }).catch(function(e) {
@@ -109,7 +84,7 @@ window.App = {
     var hours = parseInt(document.getElementById('hours').value);
 
     Payroll.deployed().then(function(instance) {
-      instance.logHours.call(hours, { from: account })
+      instance.logHours(hours, { from: account })
     }).then(function(result) {
       console.log('success', result);
     }).catch(function(e) {
@@ -119,6 +94,7 @@ window.App = {
 
   depositEth: function() {
     var self = this;
+    self.setStatus("Starting deposit, please wait...");
 
     var eth = parseInt(document.getElementById('ethDeposit').value);
 
@@ -126,9 +102,51 @@ window.App = {
       return instance.deposit({ value: 1000, from: account })
     }).then(function(result) {
       self.refreshBalance();
+      self.setStatus("Transaction complete!");
       console.log('eth should have been deposited');
     }).catch(function(e) {
+      self.setStatus("error completing deposit");
       console.log('Error depositing eth', e);
+    })
+  },
+
+  getEmployeeRate: function(address) {
+    var self = this;
+
+    var address = document.getElementById("address").value;
+
+    Payroll.deployed().then(function(instance) {
+      return instance.getRate.call(address)
+    }).then(function(data) {
+      self.setEmployeeInfo(data.valueOf());
+    }).catch(function(e) {
+      console.log('Error getting rate', e);
+    }); 
+  },
+
+  getEmployeeHours: function(address) {
+    var self = this;
+
+    var address = document.getElementById("address").value;
+
+    Payroll.deployed().then(function(instance) {
+      return instance.getHours.call(address)
+    }).then(function(data) {
+      self.setEmployeeInfo(data.valueOf());
+    }).catch(function(e) {
+      console.log('Error getting rate', e);
+    }); 
+  },
+
+  newPayrolContract: function() {
+    var self = this;
+
+    Payroll.new().then(function(instance) {
+      console.log('instance.address', instance.address);
+      var contractAddress = document.getElementById("contractAddress");
+      contractAddress.innerHTML = instance.address;
+    }).catch(function(e) {
+      console.log('Error creating contract', e);
     })
   }
 
