@@ -8,7 +8,8 @@ import payroll_artifacts from '../../build/contracts/Payroll.json'
 var Payroll = contract(payroll_artifacts);
 
 var accounts;
-var account;
+var MetamaskAccount;
+var contractAddress;
 
 window.App = {
   start: function() {
@@ -29,8 +30,9 @@ window.App = {
       }
 
       accounts = accs;
-      account = accounts[0];
+      MetamaskAccount = accounts[0];
       
+      web3.eth.defaultAccount = MetamaskAccount;
       var devAccounts = document.getElementById("devAccounts");
       devAccounts.innerHTML = accs;
       
@@ -48,16 +50,24 @@ window.App = {
     employeeView.innerHTML = message;
   },
 
+  weiToEth: function(wei) {
+    return wei * 1000000000000000000;
+  },
+
+  ethToWei: function(wei) {
+    return wei / 1000000000000000000;
+  },
+
   refreshBalance: function() {
     var self = this;
 
     var inst;
     Payroll.deployed().then(function(instance) {
       inst = instance;
-      return inst.getBalance({ from: account });
+      return inst.getBalance({ from: MetamaskAccount });
     }).then(function(value) {
       var balance = document.getElementById("accountBalance");
-      balance.innerHTML = value.valueOf();
+      balance.innerHTML = self.ethToWei(value.valueOf());
     }).catch(function(e) {
       console.log('Error getting balance', e);
     });
@@ -70,7 +80,7 @@ window.App = {
     var address = document.getElementById("employeeAddress").value;
 
     Payroll.deployed().then(function(instance) {
-      return instance.newEmployee(address, rate, { from: account });
+      return instance.newEmployee(address, rate, { from: MetamaskAccount });
     }).then(function(result) {
       console.log('success', result);
     }).catch(function(e) {
@@ -84,7 +94,7 @@ window.App = {
     var hours = parseInt(document.getElementById('hours').value);
 
     Payroll.deployed().then(function(instance) {
-      instance.logHours(hours, { from: account })
+      instance.logHours(hours, { from: MetamaskAccount })
     }).then(function(result) {
       console.log('success', result);
     }).catch(function(e) {
@@ -96,10 +106,11 @@ window.App = {
     var self = this;
     self.setStatus("Starting deposit, please wait...");
 
-    var eth = parseInt(document.getElementById('ethDeposit').value);
+    var wei = parseInt(document.getElementById('ethDeposit').value);
+    var eth = self.weiToEth(wei);
 
     Payroll.deployed().then(function(instance) {
-      return instance.deposit({ value: 1000, from: account })
+      return instance.deposit({ value: eth, from: MetamaskAccount })
     }).then(function(result) {
       self.refreshBalance();
       self.setStatus("Transaction complete!");
@@ -138,13 +149,28 @@ window.App = {
     }); 
   },
 
-  newPayrolContract: function() {
+  payEmployee: function(address) {
     var self = this;
 
-    Payroll.new().then(function(instance) {
-      console.log('instance.address', instance.address);
-      var contractAddress = document.getElementById("contractAddress");
+    var address = document.getElementById("address").value;
+
+    Payroll.deployed().then(function(instance) {
+      return instance.payEmployee(address, { from: MetamaskAccount });
+    }).then(function(data) {
+      self.setEmployeeInfo(data.valueOf());
+    }).catch(function(e) {
+      console.log('Error paying employee', e);
+    }); 
+  },
+
+  newPayrolContract: function() {
+    var self = this;
+    console.log('bar');
+    Payroll.new({ from: MetamaskAccount }).then(function(instance) {
+      contractAddress = document.getElementById("contractAddress");
       contractAddress.innerHTML = instance.address;
+      console.log('foo');
+      console.log('instance.address', instance.address);
     }).catch(function(e) {
       console.log('Error creating contract', e);
     })
@@ -153,16 +179,11 @@ window.App = {
 };
 
 window.addEventListener('load', function() {
-  // Checking if Web3 has been injected by the browser (Mist/MetaMask)
   if (typeof web3 !== 'undefined') {
-    console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
-    // Use Mist/MetaMask's provider
     window.web3 = new Web3(web3.currentProvider);
   } else {
-    console.warn("No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
-    // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
+    console.log('No web3? You should consider trying MetaMask!')
     window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
   }
-
   App.start();
 });

@@ -7,6 +7,7 @@ contract Payroll {
   struct Employee {
     uint _rate;
     uint _hours;
+    bool created;
   }
   address public creator;
   bytes32 public contractName;
@@ -73,16 +74,15 @@ contract Payroll {
   */
 
   function newEmployee(address addr, uint _rate) public ifOwner returns(address) {
-    employees[addr] = Employee(_rate, 0);
+    if(employees[addr].created) throw;
+
+    employees[addr] = Employee(_rate, 0, true);
     return addr;
   }
 
-  function payContractor(address addr) public ifOwner returns(uint) {
-    uint _rate = employees[addr]._rate;
-    uint _hours = employees[addr]._hours;
-
-    require(_hours > 0);
-    uint paymentAmount = SafeMath.mul(_rate, _hours);
+  function payEmployee(address addr) public ifOwner returns(uint) {
+    require(employees[addr]._hours > 0);
+    uint paymentAmount = SafeMath.mul(employees[addr]._rate, employees[addr]._hours);
 
     require(this.balance >= paymentAmount);
     addr.transfer(paymentAmount);

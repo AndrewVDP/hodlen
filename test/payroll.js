@@ -95,7 +95,7 @@ contract('Payroll', (accounts) => {
 
   it('should be able to pay an employee', () => {
     return Payroll.deployed().then(instance => {
-      return instance.payContractor.call(accounts[0]);
+      return instance.payEmployee.call(accounts[0]);
     })
     .then(amount => {
       assert.equal(amount, 400, 'amount paid was not correct');
