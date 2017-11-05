@@ -50,24 +50,28 @@ window.App = {
     employeeView.innerHTML = message;
   },
 
-  weiToEth: function(wei) {
+  ethToWei: function(wei) {
     return wei * 1000000000000000000;
   },
 
-  ethToWei: function(wei) {
-    return wei / 1000000000000000000;
+  weiToEth: function(eth) {
+    return eth / 1000000000000000000;
   },
 
   refreshBalance: function() {
     var self = this;
 
+    console.log('foo', web3.eth.getTransactionReceipt('0x321ca1a9bf378d7cbdf813647cd285b9a3e785481ec421582c8ab7333946602b'));
+    
+
     var inst;
     Payroll.deployed().then(function(instance) {
       inst = instance;
-      return inst.getBalance({ from: MetamaskAccount });
+      console.log('Payroll address', Payroll.address);
+      return inst.getBalance.call({ from: MetamaskAccount });
     }).then(function(value) {
       var balance = document.getElementById("accountBalance");
-      balance.innerHTML = self.ethToWei(value.valueOf());
+      balance.innerHTML = self.weiToEth(value.valueOf());
     }).catch(function(e) {
       console.log('Error getting balance', e);
     });
@@ -76,13 +80,14 @@ window.App = {
   insertEmployee: function() {
     var self = this;
 
-    var rate = parseInt(document.getElementById("employeeRate").value);
+    var rateInWei = parseInt(document.getElementById("employeeRate").value);
     var address = document.getElementById("employeeAddress").value;
 
+    var rateInWei = self.ethToWei(rateInWei);
     Payroll.deployed().then(function(instance) {
-      return instance.newEmployee(address, rate, { from: MetamaskAccount });
+      return instance.newEmployee(address, rateInWei, { from: MetamaskAccount });
     }).then(function(result) {
-      console.log('success', result);
+      console.log('employee inserted', result);
     }).catch(function(e) {
       console.log('error when trying to create employee:', e);
     });
@@ -96,7 +101,7 @@ window.App = {
     Payroll.deployed().then(function(instance) {
       instance.logHours(hours, { from: MetamaskAccount })
     }).then(function(result) {
-      console.log('success', result);
+      console.log('hours logged', result);
     }).catch(function(e) {
       console.log('error loggin hours', e);
     })
@@ -106,18 +111,15 @@ window.App = {
     var self = this;
     self.setStatus("Starting deposit, please wait...");
 
-    var wei = parseInt(document.getElementById('ethDeposit').value);
-    var eth = self.weiToEth(wei);
-
+    var eth = parseInt(document.getElementById('ethDeposit').value);
+    var wei = self.ethToWei(eth);
     Payroll.deployed().then(function(instance) {
-      return instance.deposit({ value: eth, from: MetamaskAccount })
+      return instance.deposit({ value: wei, from: MetamaskAccount })
     }).then(function(result) {
       self.refreshBalance();
-      self.setStatus("Transaction complete!");
-      console.log('eth should have been deposited');
+      self.setStatus("Eth deposited!");
     }).catch(function(e) {
       self.setStatus("error completing deposit");
-      console.log('Error depositing eth', e);
     })
   },
 
@@ -129,7 +131,8 @@ window.App = {
     Payroll.deployed().then(function(instance) {
       return instance.getRate.call(address)
     }).then(function(data) {
-      self.setEmployeeInfo(data.valueOf());
+      var rateInEth = self.weiToEth(data.valueOf());
+      self.setEmployeeInfo(rateInEth);
     }).catch(function(e) {
       console.log('Error getting rate', e);
     }); 
@@ -157,6 +160,7 @@ window.App = {
     Payroll.deployed().then(function(instance) {
       return instance.payEmployee(address, { from: MetamaskAccount });
     }).then(function(data) {
+      console.log('paid employee', data);
       self.setEmployeeInfo(data.valueOf());
     }).catch(function(e) {
       console.log('Error paying employee', e);
@@ -165,11 +169,11 @@ window.App = {
 
   newPayrolContract: function() {
     var self = this;
-    console.log('bar');
+    console.log('foo');
     Payroll.new({ from: MetamaskAccount }).then(function(instance) {
       contractAddress = document.getElementById("contractAddress");
       contractAddress.innerHTML = instance.address;
-      console.log('foo');
+      console.log('bar');
       console.log('instance.address', instance.address);
     }).catch(function(e) {
       console.log('Error creating contract', e);

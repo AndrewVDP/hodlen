@@ -13,11 +13,11 @@ Decentralized Ether payroll service.
 
 ## Testing in Development
 
-`testrpc` in another terminal
-`truffle compile` to compile contracts
-`truffle migrate` to migrate compiled contracts to testchain running</br>
-in another terminal
-`npm run dev` to start webpack and view app on localhost
+`testrpc` in another terminal<br>
+`truffle compile` to compile contracts<br>
+`truffle migrate` to migrate compiled contracts to testchain running<br>
+in another terminal<br>
+`npm run dev` to start webpack and view app on localhost<br>
 
 ### Setup
 
