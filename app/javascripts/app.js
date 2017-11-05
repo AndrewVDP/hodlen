@@ -7,9 +7,7 @@ import payroll_artifacts from '../../build/contracts/Payroll.json'
 
 var Payroll = contract(payroll_artifacts);
 
-var accounts;
 var MetamaskAccount;
-var contractAddress;
 
 window.App = {
   start: function() {
@@ -17,26 +15,27 @@ window.App = {
 
     Payroll.setProvider(web3.currentProvider);
 
-    // Get the initial account balance in you ethereum client.
-    web3.eth.getAccounts(function(err, accs) {
+    web3.eth.getAccounts(function(err, accounts) {
       if (err != null) {
         alert("There was an error fetching your accounts.");
         return;
       }
 
-      if (accs.length == 0) {
+      if (accounts.length == 0) {
         alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
         return;
       }
 
-      accounts = accs;
       MetamaskAccount = accounts[0];
       
       web3.eth.defaultAccount = MetamaskAccount;
       var devAccounts = document.getElementById("devAccounts");
-      devAccounts.innerHTML = accs;
-      
-      self.refreshBalance();
+      devAccounts.innerHTML = MetamaskAccount;
+
+      /*
+      * Need to get contract if one was already created
+      */
+      self.newPayrolContract();
     });
   },
 
@@ -50,25 +49,24 @@ window.App = {
     employeeView.innerHTML = message;
   },
 
-  ethToWei: function(wei) {
-    return wei * 1000000000000000000;
+  ethToWei: function(eth) {
+    return eth * 1000000000000000000;
   },
 
-  weiToEth: function(eth) {
-    return eth / 1000000000000000000;
+  weiToEth: function(wei) {
+    return wei / 1000000000000000000;
+  },
+
+  updateContractAddress: function() {
+    var address = document.getElementById("contractAddress");
+    address.innerHTML = Payroll.address;
   },
 
   refreshBalance: function() {
     var self = this;
 
-    console.log('foo', web3.eth.getTransactionReceipt('0x321ca1a9bf378d7cbdf813647cd285b9a3e785481ec421582c8ab7333946602b'));
-    
-
-    var inst;
-    Payroll.deployed().then(function(instance) {
-      inst = instance;
-      console.log('Payroll address', Payroll.address);
-      return inst.getBalance.call({ from: MetamaskAccount });
+    Payroll.at(Payroll.address).then(function(instance) {
+      return instance.getBalance.call({ from: MetamaskAccount });
     }).then(function(value) {
       var balance = document.getElementById("accountBalance");
       balance.innerHTML = self.weiToEth(value.valueOf());
@@ -84,7 +82,7 @@ window.App = {
     var address = document.getElementById("employeeAddress").value;
 
     var rateInWei = self.ethToWei(rateInWei);
-    Payroll.deployed().then(function(instance) {
+    Payroll.at(Payroll.address).then(function(instance) {
       return instance.newEmployee(address, rateInWei, { from: MetamaskAccount });
     }).then(function(result) {
       console.log('employee inserted', result);
@@ -98,8 +96,8 @@ window.App = {
 
     var hours = parseInt(document.getElementById('hours').value);
 
-    Payroll.deployed().then(function(instance) {
-      instance.logHours(hours, { from: MetamaskAccount })
+    Payroll.at(Payroll.address).then(function(instance) {
+      return instance.logHours(hours, { from: MetamaskAccount });
     }).then(function(result) {
       console.log('hours logged', result);
     }).catch(function(e) {
@@ -113,8 +111,9 @@ window.App = {
 
     var eth = parseInt(document.getElementById('ethDeposit').value);
     var wei = self.ethToWei(eth);
-    Payroll.deployed().then(function(instance) {
-      return instance.deposit({ value: wei, from: MetamaskAccount })
+    
+    Payroll.at(Payroll.address).then(function(instance) {
+      return instance.deposit({ value: wei, from: MetamaskAccount });
     }).then(function(result) {
       self.refreshBalance();
       self.setStatus("Eth deposited!");
@@ -128,7 +127,7 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    Payroll.deployed().then(function(instance) {
+    Payroll.at(Payroll.address).then(function(instance) {
       return instance.getRate.call(address)
     }).then(function(data) {
       var rateInEth = self.weiToEth(data.valueOf());
@@ -143,7 +142,7 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    Payroll.deployed().then(function(instance) {
+    Payroll.at(Payroll.address).then(function(instance) {
       return instance.getHours.call(address)
     }).then(function(data) {
       self.setEmployeeInfo(data.valueOf());
@@ -157,10 +156,11 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    Payroll.deployed().then(function(instance) {
+    Payroll.at(Payroll.address).then(function(instance) {
       return instance.payEmployee(address, { from: MetamaskAccount });
     }).then(function(data) {
       console.log('paid employee', data);
+      self.refreshBalance();
       self.setEmployeeInfo(data.valueOf());
     }).catch(function(e) {
       console.log('Error paying employee', e);
@@ -169,12 +169,11 @@ window.App = {
 
   newPayrolContract: function() {
     var self = this;
-    console.log('foo');
     Payroll.new({ from: MetamaskAccount }).then(function(instance) {
-      contractAddress = document.getElementById("contractAddress");
-      contractAddress.innerHTML = instance.address;
-      console.log('bar');
-      console.log('instance.address', instance.address);
+      Payroll.address = instance.address;
+      self.updateContractAddress();
+      self.refreshBalance();
+      console.log('new contract:', Payroll.address);
     }).catch(function(e) {
       console.log('Error creating contract', e);
     })

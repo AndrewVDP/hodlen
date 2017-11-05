@@ -8,7 +8,7 @@
     "build": "webpack",
     "dev": "webpack-dev-server",
     "start": "node ./api/server.js",
-    "testrpc": "testrpc --account=\"0x980b8509635cb661d3c6982734d14024b0ac0954437160cad7ba930f01b8e0d5,1000000000000000000000 \""
+    "testrpc": "./bin/testrpc.sh"
   },
   "author": "Andrew Van De Poel",
   "devDependencies": {

@@ -86,7 +86,8 @@ contract Payroll {
 
     require(this.balance >= paymentAmount);
     addr.transfer(paymentAmount);
-
+    employees[addr]._hours = 0;
+    
     return paymentAmount;
   }
 
