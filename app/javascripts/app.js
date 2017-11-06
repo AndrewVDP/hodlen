@@ -41,7 +41,7 @@ window.App = {
 
     var address = localStorage.getItem("contractAddress");
 
-    Payroll.detectNetwork().then(function(data) {
+    return Payroll.detectNetwork().then(function(data) {
       // set the contract address if it's found in localstorage
       if(address !== null) {
         return Payroll.at(address).then(function() {
@@ -65,7 +65,6 @@ window.App = {
     }).catch(function(e) {
       console.log('error detecting network', e);
     });
-      
   },
 
   setStatus: function(message, element) {
@@ -83,7 +82,7 @@ window.App = {
     address.innerHTML = Payroll.address;
   },
 
-  ethWei: function(eth) {
+  ethToWei: function(eth) {
     return eth * 1000000000000000000;
   },
 
@@ -205,7 +204,7 @@ window.App = {
       Payroll.address = instance.address;
       self.setContractAddress();
       self.refreshBalance();
-      
+
       // store new contract address in localstorage
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Contract Created!", "contractConnectionStatus");
