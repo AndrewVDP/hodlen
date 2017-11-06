@@ -15,6 +15,7 @@ window.App = {
 
     Payroll.setProvider(web3.currentProvider);
 
+    // get account from ethereum client
     web3.eth.getAccounts(function(err, accounts) {
       if (err != null) {
         alert("There was an error fetching your accounts.");
@@ -26,21 +27,49 @@ window.App = {
         return;
       }
 
+      if(typeof(Storage) === "undefined") {
+        alert('Could not access localstorage. Please switch browsers');
+        return;
+      }
+
       MetamaskAccount = accounts[0];
       
       web3.eth.defaultAccount = MetamaskAccount;
       var devAccounts = document.getElementById("devAccounts");
       devAccounts.innerHTML = MetamaskAccount;
-
-      /*
-      * Need to get contract if one was already created
-      */
-      self.newPayrolContract();
     });
+
+    var address = localStorage.getItem("contractAddress");
+
+    Payroll.detectNetwork().then(function(data) {
+      // set the contract address if it's found in localstorage
+      if(address !== null) {
+        return Payroll.at(address).then(function() {
+          self.setContractAddress();
+          self.refreshBalance();
+
+          return;
+        }).catch(function(e) {
+          console.log('contract found in localstorage not found on blockchain');
+          var contractAddress = document.getElementById("contractAddress");
+          contractAddress.innerHTML = "No Contract found.";
+
+          return;
+        });
+      }
+
+      var contractAddress = document.getElementById("contractAddress");
+      contractAddress.innerHTML = "No Contract found.";
+
+      return;
+    }).catch(function(e) {
+      console.log('error detecting network', e);
+    });
+      
   },
 
-  setStatus: function(message) {
-    var status = document.getElementById("status");
+  setStatus: function(message, element) {
+    var status = document.getElementById(element);
     status.innerHTML = message;
   },
 
@@ -49,17 +78,17 @@ window.App = {
     employeeView.innerHTML = message;
   },
 
-  ethToWei: function(eth) {
+  setContractAddress: function() {
+    var address = document.getElementById("contractAddress");
+    address.innerHTML = Payroll.address;
+  },
+
+  ethWei: function(eth) {
     return eth * 1000000000000000000;
   },
 
   weiToEth: function(wei) {
     return wei / 1000000000000000000;
-  },
-
-  updateContractAddress: function() {
-    var address = document.getElementById("contractAddress");
-    address.innerHTML = Payroll.address;
   },
 
   refreshBalance: function() {
@@ -107,7 +136,7 @@ window.App = {
 
   depositEth: function() {
     var self = this;
-    self.setStatus("Starting deposit, please wait...");
+    self.setStatus("Starting deposit, please wait...", "status");
 
     var eth = parseInt(document.getElementById('ethDeposit').value);
     var wei = self.ethToWei(eth);
@@ -116,9 +145,9 @@ window.App = {
       return instance.deposit({ value: wei, from: MetamaskAccount });
     }).then(function(result) {
       self.refreshBalance();
-      self.setStatus("Eth deposited!");
+      self.setStatus("Eth deposited!", "status");
     }).catch(function(e) {
-      self.setStatus("error completing deposit");
+      self.setStatus("error completing deposit", "status");
     })
   },
 
@@ -169,14 +198,37 @@ window.App = {
 
   newPayrolContract: function() {
     var self = this;
+
+    self.setStatus("Creating new contract, please wait...", "contractConnectionStatus");
+
     Payroll.new({ from: MetamaskAccount }).then(function(instance) {
       Payroll.address = instance.address;
-      self.updateContractAddress();
+      self.setContractAddress();
       self.refreshBalance();
-      console.log('new contract:', Payroll.address);
+      
+      // store new contract address in localstorage
+      localStorage.setItem("contractAddress", Payroll.address);
+      self.setStatus("Contract Created!", "contractConnectionStatus");
     }).catch(function(e) {
-      console.log('Error creating contract', e);
+      self.setStatus("Error creating contract", "contractConnectionStatus");
     })
+  },
+
+  importContract: function() {
+    var self = this;
+    
+    self.setStatus("Importing new contract, please wait...", "contractConnectionStatus");
+
+    var address = document.getElementById("importContractAddress").value;
+
+    Payroll.at(address).then(function() {
+      Payroll.address = address;
+      self.setContractAddress();
+      self.refreshBalance();
+      self.setStatus("Imported contract!", "contractConnectionStatus");
+    }).catch(function(e) {
+      self.setStatus("Error importing contract", "contractConnectionStatus");
+    });
   }
 
 };

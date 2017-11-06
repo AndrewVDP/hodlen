@@ -9,35 +9,76 @@
   <h1>Skadoosh</h1>
   <br>
   <h2>Ethereum Payroll Dapp</h2>
-  <h3>Account balance: <span class="black"><span id="accountBalance"></span> Eth</span></h3>
-
-  <h3>Meta Mask Account: <span id="devAccounts"></span></h3>
-  <h3>Contract: <span id="contractAddress"></span></h3>
- 
-  <h3><span class="black">Create New Contract?</span></h3>
-  <button id="createContract" onclick="App.newPayrolContract()">New Contract</button>
-
-  <h3><span class="black">Create New Employee:</span></h3>
-  <label for="employeeAddress">Address:</label><input type="text" id="employeeAddress" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
-  <br><label for="employeeRate">Hourly Rate:</label><input type="text" id="employeeRate" placeholder="e.g., 21.36"></input>
-  <br><br>
-  <button id="addEmployee" onclick="App.insertEmployee()">Insert Employee</button>
-  <br><br>
   
-  <h3><span class="black">Log Hours:</span></h3>
-  <label for="hours">Hours:</label><input type="text" id="hours" placeholder="e.g., 1.2"></input>
-  <br><br>
+  <h3>Account balance:<br>
+    <span class="black">
+      <span id="accountBalance"></span>
+    </span>
+  </h3>
+
+  <h3>Meta Mask Account: 
+    <span class="black">
+      <span id="devAccounts"></span>
+    </span>
+  </h3>
+  
+  <h3>Contract: 
+    <span class="black">
+      <span id="contractAddress"></span>
+    </span>
+  </h3>
+   
+  <button id="createContract" onclick="App.newPayrolContract()">New Contract</button>
+   or 
+  <button id="importContract" onclick="App.importContract()">Import</button>
+  <br>
+  <br>
+  <input type="text" id="importContractAddress" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
+  <br>
+  <br>
+  <span id="contractConnectionStatus"></span>
+  
+  <h3>
+    <span class="black">Create New Employee:</span>
+  </h3>
+  <label for="employeeAddress">Address:</label>
+  <input type="text" id="employeeAddress" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
+  <br>
+  <label for="employeeRate">Hourly Rate:</label>
+  <input type="text" id="employeeRate" placeholder="e.g., 21.36"></input>
+  <br>
+  <br>
+  <button id="addEmployee" onclick="App.insertEmployee()">Insert Employee</button>
+  <br>
+  <br>
+  
+  <h3>
+    <span class="black">Log Hours:</span>
+  </h3>
+  <label for="hours">Hours:</label>
+  <input type="text" id="hours" placeholder="e.g., 1.2"></input>
+  <br>
+  <br>
   <button id="logHours" onclick="App.logHours()">Submit Hours</button>
 
-  <h3><span class="black">Deposit Eth</span></h3>
-  <label for="ethDeposit">Amount:</label><input type="text" id="ethDeposit" placeholder="e.g., 95"></input>
-  <br><br><button id="deposit" onclick="App.depositEth()">Deposit</button>
+  <h3>
+    <span class="black">Deposit Eth</span>
+  </h3>
+  <label for="ethDeposit">Amount:</label>
+  <input type="text" id="ethDeposit" placeholder="e.g., 95"></input>
+  <br>
+  <br>
+  <button id="deposit" onclick="App.depositEth()">Deposit</button>
   <br>
   <span id="status"></span>
 
-  <h3><span class="black">Employee Information</span></h3>
-  <label for="employeeRate">Address:</label><input type="text" id="address" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
-  <br><br>
+  <h3>
+    <span class="black">Employee Information</span>
+  </h3>
+  <label for="employeeRate">Address:</label>
+  <input type="text" id="address" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
+  <br>
+  <br>
   <button id="getEmployeeRate" onclick="App.getEmployeeRate()">Get Rate</button>
   <button id="getEmployeeHours" onclick="App.getEmployeeHours()">Get Hours</button>
   <button id="payEmployee" onclick="App.payEmployee()">Pay Employee</button>
@@ -47,6 +88,5 @@
   <br><br>
   <br><br>
   <br><br>
-  
 </body>
 </html>
