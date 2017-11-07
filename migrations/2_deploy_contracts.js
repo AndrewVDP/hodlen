@@ -10,5 +10,5 @@ module.exports = function(deployer) {
 
   deployer.deploy(SafeMath);
   deployer.link(SafeMath, Payroll);
-  deployer.deploy(Payroll, "foo");
+  deployer.deploy(Payroll);
 };

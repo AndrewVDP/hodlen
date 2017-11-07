@@ -7,11 +7,10 @@ contract Payroll {
   struct Employee {
     uint _rate;
     uint _hours;
-    bool created;
   }
   address public creator;
-  bytes32 public contractName;
   mapping(address => Employee) employees;
+  address[] public employeeList;
 
   modifier ifOwner() {
     if (msg.sender != creator) revert();
@@ -22,9 +21,8 @@ contract Payroll {
   * constructor that sets the owner of the contract
   */
 
-  function Payroll(bytes32 _name) {
+  function Payroll() {
     creator = msg.sender;
-    contractName = _name;
   }
   
   function deposit() public payable {
@@ -53,6 +51,7 @@ contract Payroll {
 
   function setRate(address addr, uint _rate) public ifOwner returns(uint) {
     require(_rate >= 0);
+    require(employees[addr]._rate >= 0);
 
     employees[addr]._rate = _rate;
 
@@ -63,6 +62,7 @@ contract Payroll {
     address addr = msg.sender;
 
     require(_hours > 0);
+    require(employees[addr]._rate > 0);
 
     employees[addr]._hours = SafeMath.add(employees[addr]._hours, _hours);
 
@@ -74,9 +74,13 @@ contract Payroll {
   */
 
   function newEmployee(address addr, uint _rate) public ifOwner returns(address) {
-    if(employees[addr].created) throw;
+    if(employees[addr]._rate > 0) throw;
+    require(_rate > 0);
+    // if(_rate <= 0) throw;
+    // require(employees[addr]._rate > 0);
 
-    employees[addr] = Employee(_rate, 0, true);
+    employeeList.push(addr);
+    employees[addr] = Employee(_rate, 0);
     return addr;
   }
 
@@ -85,8 +89,9 @@ contract Payroll {
     uint paymentAmount = SafeMath.mul(employees[addr]._rate, employees[addr]._hours);
 
     require(this.balance >= paymentAmount);
-    addr.transfer(paymentAmount);
+    
     employees[addr]._hours = 0;
+    addr.transfer(paymentAmount);
     
     return paymentAmount;
   }

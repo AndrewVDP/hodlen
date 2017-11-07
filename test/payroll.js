@@ -7,13 +7,6 @@ contract('Payroll', (accounts) => {
     });
   });
 
-  it('should return the Payroll name "foo"', () => {
-    return Payroll.deployed().then(instance => instance.contractName.call())
-      .then(data => {
-        assert.equal(web3.toAscii(data).replace(/\u0000/g, ''), 'foo', 'foo was not set as contract name');
-      });
-  });
-
   it('should confirm contract is deployed with 0 eth', () => {
     return Payroll.deployed().then(instance => instance.getBalance.call())
       .then(balance => {

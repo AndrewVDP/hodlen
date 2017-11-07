@@ -45,6 +45,7 @@ window.App = {
       // set the contract address if it's found in localstorage
       if(address !== null) {
         return Payroll.at(address).then(function() {
+          Payroll.address = address;
           self.setContractAddress();
           self.refreshBalance();
 
@@ -189,7 +190,7 @@ window.App = {
     }).then(function(data) {
       console.log('paid employee', data);
       self.refreshBalance();
-      self.setEmployeeInfo(data.valueOf());
+      self.setEmployeeInfo("Paid!");
     }).catch(function(e) {
       console.log('Error paying employee', e);
     }); 
@@ -199,16 +200,20 @@ window.App = {
     var self = this;
 
     self.setStatus("Creating new contract, please wait...", "contractConnectionStatus");
-
+    console.log('creating new contract');
     Payroll.new({ from: MetamaskAccount }).then(function(instance) {
+      console.log('foo');
       Payroll.address = instance.address;
       self.setContractAddress();
+      console.log('bar');
       self.refreshBalance();
+      console.log('baz');
 
       // store new contract address in localstorage
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Contract Created!", "contractConnectionStatus");
     }).catch(function(e) {
+      console.log('thing');
       self.setStatus("Error creating contract", "contractConnectionStatus");
     })
   },
@@ -218,12 +223,13 @@ window.App = {
     
     self.setStatus("Importing new contract, please wait...", "contractConnectionStatus");
 
-    var address = document.getElementById("importContractAddress").value;
+    var address = document.getElementById("importContractAddress").value.trim();
 
     Payroll.at(address).then(function() {
       Payroll.address = address;
       self.setContractAddress();
       self.refreshBalance();
+      localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Imported contract!", "contractConnectionStatus");
     }).catch(function(e) {
       self.setStatus("Error importing contract", "contractConnectionStatus");
