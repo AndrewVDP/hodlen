@@ -215,6 +215,7 @@ window.App = {
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Contract Created!", "contractConnectionStatus");
     }).catch(function(e) {
+      console.log('create contract error', e);
       self.setStatus("Error creating contract", "contractConnectionStatus");
     })
   },

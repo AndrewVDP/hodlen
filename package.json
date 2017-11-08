@@ -6,7 +6,7 @@
     "test": "rm -rf ./build && truffle compile --all && truffle migrate --reset && truffle test",
     "lint": "eslint ./",
     "build": "webpack",
-    "dev": "webpack-dev-server",
+    "dev": "webpack-dev-server --host 0.0.0.0",
     "start": "node ./api/server.js",
     "testrpc": "./bin/testrpc.sh"
   },
