@@ -156,11 +156,12 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    Payroll.at(Payroll.address).then(function(instance) {
-      return instance.getRate.call(address)
+    return Payroll.at(Payroll.address).then(function(instance) {
+      return instance.getRate.call(address);
     }).then(function(data) {
       var rateInEth = self.weiToEth(data.valueOf());
       self.setEmployeeInfo(rateInEth);
+      return rateInEth;
     }).catch(function(e) {
       console.log('Error getting rate', e);
     }); 
@@ -171,10 +172,11 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    Payroll.at(Payroll.address).then(function(instance) {
+    return Payroll.at(Payroll.address).then(function(instance) {
       return instance.getHours.call(address)
     }).then(function(data) {
       self.setEmployeeInfo(data.valueOf());
+      return data.valueOf();
     }).catch(function(e) {
       console.log('Error getting rate', e);
     }); 
@@ -213,7 +215,6 @@ window.App = {
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Contract Created!", "contractConnectionStatus");
     }).catch(function(e) {
-      console.log('thing');
       self.setStatus("Error creating contract", "contractConnectionStatus");
     })
   },
@@ -234,6 +235,21 @@ window.App = {
     }).catch(function(e) {
       self.setStatus("Error importing contract", "contractConnectionStatus");
     });
+  },
+
+  getEmployeeList: function() {
+    var self = this;
+
+    console.log('get employee list');
+    return Payroll.at(Payroll.address).then(function(instance) {
+      return instance.getEmployeeList.call();
+    }).then(function(emplList) {
+      console.log(emplList);
+      return emplList;
+    }).catch(function(e) {
+      console.log('error getting employee list', e);
+      return e;
+    })
   }
 
 };

@@ -95,4 +95,14 @@ contract('Payroll', (accounts) => {
     })
   })
 
+  it('should return employee list', () => {
+    return Payroll.deployed().then(instance => {
+      return instance.getEmployeeList.call();
+    })
+    .then(list => {
+      const emplLen = list.length;
+      assert.equal(emplLen, 1, 'wrong number of employees returned from contract');
+    })
+  })
+
 });

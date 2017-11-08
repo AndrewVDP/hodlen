@@ -21,7 +21,7 @@ contract Payroll {
   * constructor that sets the owner of the contract
   */
 
-  function Payroll() {
+  function Payroll() public {
     creator = msg.sender;
   }
   
@@ -33,7 +33,7 @@ contract Payroll {
   * getters
   */
 
-  function getBalance() public constant returns(uint) {
+  function getBalance() public view returns(uint) {
     return this.balance;
   }
 
@@ -43,6 +43,10 @@ contract Payroll {
 
   function getRate(address addr) public constant returns(uint) {
     return employees[addr]._rate;
+  }
+
+  function getEmployeeList() public constant returns(address[]) {
+    return employeeList;
   }
 
   /*
@@ -74,7 +78,8 @@ contract Payroll {
   */
 
   function newEmployee(address addr, uint _rate) public ifOwner returns(address) {
-    if(employees[addr]._rate > 0) throw;
+    // check if employee already exists
+    if(employees[addr]._rate > 0) revert();
     require(_rate > 0);
     // if(_rate <= 0) throw;
     // require(employees[addr]._rate > 0);
