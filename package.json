@@ -5,9 +5,9 @@
   "scripts": {
     "test": "rm -rf ./build && truffle compile --all && truffle migrate --reset && truffle test",
     "lint": "eslint ./",
-    "build": "webpack",
-    "dev": "webpack-dev-server --host 0.0.0.0",
-    "start": "node ./api/server.js",
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack-dev-server --config webpack.dev.js",
+    "start": "node ./server.js",
     "testrpc": "./bin/testrpc.sh"
   },
   "author": "Andrew Van De Poel",
@@ -31,16 +31,20 @@
     "html-webpack-plugin": "^2.28.0",
     "json-loader": "^0.5.4",
     "style-loader": "^0.13.1",
-    "truffle-contract": "^1.1.11",
     "web3": "^1.0.0-beta.24",
     "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.3.0"
+    "webpack-dev-server": "^2.3.0",
+    "webpack-merge": "^4.1.1"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
+    "clean-webpack-plugin": "^0.1.17",
     "debug": "^3.1.0",
     "express": "^4.16.2",
     "helmet": "^3.9.0",
-    "mongodb": "^2.2.33"
+    "mongodb": "^2.2.33",
+    "truffle-contract": "^1.1.11",
+    "uglifyjs-webpack-plugin": "^1.0.1",
+    "webpack-hot-middleware": "^2.20.0"
   }
 }

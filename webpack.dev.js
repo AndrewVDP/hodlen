@@ -1,20 +1,34 @@
+const merge = require('webpack-merge');
+const common = require('./webpack.config.js');
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+// module.exports = merge(common, {
+//   devtool: 'eval-source-map'
+//   // devServer: {
+//   //   contentBase: './dist'
+//   // },
+//   // plugins: [
+//   //   new HtmlWebpackPlugin({
+//   //     title: 'dev'
+//   //   })
+//   // ]
+// });
+
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-// const CleanWebpackPlugin = require('clean-webpack-plugin');
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './app/javascripts/app.js',
   output: {
-    path: path.join(__dirname, '/dist/'),
+    path: path.resolve(__dirname, 'build'),
     filename: 'app.js',
     publicPath: '/'
   },
   plugins: [
     // Copy our app's index.html to the build folder.
-    // new CopyWebpackPlugin([
-    //   { from: './app/index.html', to: "index.html" }
-    // ])
+    new CopyWebpackPlugin([
+      { from: './app/index.html', to: "index.html" }
+    ])
   ],
   module: {
     rules: [

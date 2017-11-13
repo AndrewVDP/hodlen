@@ -6,17 +6,27 @@ import { default as contract } from 'truffle-contract'
 import payroll_artifacts from '../../build/contracts/Payroll.json'
 
 var Payroll = contract(payroll_artifacts);
-
+var ropstenNetId = 3;
 var MetamaskAccount;
 
 window.App = {
   start: function() {
     var self = this;
 
+    // needs to be set before calling <conract>.new()
     Payroll.setProvider(web3.currentProvider);
 
+    // remove for prod
+    // self.isMainNet().then(isMainNet => {
+    //   if (isMainNet) {
+    //     web3.currentProvider = null;
+    //     alert('switch to testnet');
+    //     return;
+    //   }
+    // });
+
     // get account from ethereum client
-    web3.eth.getAccounts(function(err, accounts) {
+    web3.eth.getAccounts((err, accounts) => {
       if (err != null) {
         alert("There was an error fetching your accounts.");
         return;
@@ -33,24 +43,23 @@ window.App = {
       }
 
       MetamaskAccount = accounts[0];
-      
       web3.eth.defaultAccount = MetamaskAccount;
       var devAccounts = document.getElementById("devAccounts");
       devAccounts.innerHTML = MetamaskAccount;
     });
 
     var address = localStorage.getItem("contractAddress");
-
-    return Payroll.detectNetwork().then(function(data) {
+    console.log('address', address);
+    return Payroll.detectNetwork().then(id => {
       // set the contract address if it's found in localstorage
       if(address !== null) {
-        return Payroll.at(address).then(function() {
+        return Payroll.at(address).then(() => {
           Payroll.address = address;
           self.setContractAddress();
           self.refreshBalance();
 
           return;
-        }).catch(function(e) {
+        }).catch(e => {
           console.log('contract found in localstorage not found on blockchain');
           var contractAddress = document.getElementById("contractAddress");
           contractAddress.innerHTML = "No Contract found.";
@@ -63,7 +72,7 @@ window.App = {
       contractAddress.innerHTML = "No Contract found.";
 
       return;
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('error detecting network', e);
     });
   },
@@ -91,15 +100,33 @@ window.App = {
     return wei / 1000000000000000000;
   },
 
+  getNetowrkId: function() {
+    return web3.eth.net.getId().then(function(id) {
+      return Promise.resolve(id);
+    })
+  },
+
+  isMainNet: function() {
+    var self = this;
+
+    return self.getNetowrkId().then(id => {
+      if(id === 1) {
+        return Promise.resolve(true);
+      }
+
+      return Promise.resolve(false);
+    })
+  },
+
   refreshBalance: function() {
     var self = this;
 
-    Payroll.at(Payroll.address).then(function(instance) {
+    Payroll.at(Payroll.address).then(instance => {
       return instance.getBalance.call({ from: MetamaskAccount });
-    }).then(function(value) {
+    }).then(value => {
       var balance = document.getElementById("accountBalance");
       balance.innerHTML = self.weiToEth(value.valueOf());
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('Error getting balance', e);
     });
   },
@@ -111,12 +138,13 @@ window.App = {
     var address = document.getElementById("employeeAddress").value;
 
     var rateInWei = self.ethToWei(rateInWei);
-    Payroll.at(Payroll.address).then(function(instance) {
+
+    return Payroll.at(Payroll.address).then(instance => {
       return instance.newEmployee(address, rateInWei, { from: MetamaskAccount });
-    }).then(function(result) {
-      console.log('employee inserted', result);
-    }).catch(function(e) {
-      console.log('error when trying to create employee:', e);
+    }).then(result => {
+      return console.log('employee inserted', result);
+    }).catch(e => {
+      return console.log('error when trying to create employee:', e);
     });
   },
 
@@ -124,12 +152,11 @@ window.App = {
     var self = this;
 
     var hours = parseInt(document.getElementById('hours').value);
-
-    Payroll.at(Payroll.address).then(function(instance) {
+    return Payroll.at(Payroll.address).then(instance => {
       return instance.logHours(hours, { from: MetamaskAccount });
-    }).then(function(result) {
+    }).then(result => {
       console.log('hours logged', result);
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('error loggin hours', e);
     })
   },
@@ -141,12 +168,12 @@ window.App = {
     var eth = parseInt(document.getElementById('ethDeposit').value);
     var wei = self.ethToWei(eth);
     
-    Payroll.at(Payroll.address).then(function(instance) {
+    return Payroll.at(Payroll.address).then(instance => {
       return instance.deposit({ value: wei, from: MetamaskAccount });
-    }).then(function(result) {
+    }).then(result => {
       self.refreshBalance();
       self.setStatus("Eth deposited!", "status");
-    }).catch(function(e) {
+    }).catch(e => {
       self.setStatus("error completing deposit", "status");
     })
   },
@@ -156,13 +183,13 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    return Payroll.at(Payroll.address).then(function(instance) {
+    return Payroll.at(Payroll.address).then(instance => {
       return instance.getRate.call(address);
-    }).then(function(data) {
+    }).then(data => {
       var rateInEth = self.weiToEth(data.valueOf());
       self.setEmployeeInfo(rateInEth);
       return rateInEth;
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('Error getting rate', e);
     }); 
   },
@@ -172,12 +199,12 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    return Payroll.at(Payroll.address).then(function(instance) {
-      return instance.getHours.call(address)
-    }).then(function(data) {
+    return Payroll.at(Payroll.address).then(instance => {
+      return instance.getHours.call(address);
+    }).then(data => {
       self.setEmployeeInfo(data.valueOf());
       return data.valueOf();
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('Error getting rate', e);
     }); 
   },
@@ -187,13 +214,13 @@ window.App = {
 
     var address = document.getElementById("address").value;
 
-    Payroll.at(Payroll.address).then(function(instance) {
+    return Payroll.at(Payroll.address).then(instance => {
       return instance.payEmployee(address, { from: MetamaskAccount });
-    }).then(function(data) {
+    }).then(data => {
       console.log('paid employee', data);
       self.refreshBalance();
       self.setEmployeeInfo("Paid!");
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('Error paying employee', e);
     }); 
   },
@@ -203,7 +230,7 @@ window.App = {
 
     self.setStatus("Creating new contract, please wait...", "contractConnectionStatus");
     console.log('creating new contract');
-    Payroll.new({ from: MetamaskAccount }).then(function(instance) {
+    return Payroll.new({ from: MetamaskAccount }).then(instance => {
       console.log('foo');
       Payroll.address = instance.address;
       self.setContractAddress();
@@ -214,7 +241,7 @@ window.App = {
       // store new contract address in localstorage
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Contract Created!", "contractConnectionStatus");
-    }).catch(function(e) {
+    }).catch(e => {
       console.log('create contract error', e);
       self.setStatus("Error creating contract", "contractConnectionStatus");
     })
@@ -227,13 +254,13 @@ window.App = {
 
     var address = document.getElementById("importContractAddress").value.trim();
 
-    Payroll.at(address).then(function() {
+    return Payroll.at(address).then(() => {
       Payroll.address = address;
       self.setContractAddress();
       self.refreshBalance();
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Imported contract!", "contractConnectionStatus");
-    }).catch(function(e) {
+    }).catch(e => {
       self.setStatus("Error importing contract", "contractConnectionStatus");
     });
   },
