@@ -30,30 +30,32 @@ contract Payroll {
   /*
   * constructor that sets the owner of the contract
   */
-  function Payroll() public {
+  function Payroll() {
     contractOwner = msg.sender;
   }
   
-  function deposit() public payable {
+  function deposit()
+    payable
+  {
 
   }
 
   /*
   * getters
   */
-  function getBalance() public view returns(uint) {
+  function getBalance() view returns(uint) {
     return this.balance;
   }
 
-  function getHours(address addr) public constant returns(uint) {
+  function getHours(address addr) constant returns(uint) {
     return employees[addr]._hours;
   }
 
-  function getRate(address addr) public constant returns(uint) {
+  function getRate(address addr) constant returns(uint) {
     return employees[addr]._rate;
   }
 
-  function getEmployeeList() public constant returns(address[]) {
+  function getEmployeeList() constant returns(address[]) {
     return employeeList;
   }
 
@@ -61,7 +63,6 @@ contract Payroll {
   * setters
   */
   function setRate(address addr, uint _rate)
-    public
     isOwner
     isValidEmployee(addr)
     isValueBiggerThanZero(_rate)
@@ -72,7 +73,6 @@ contract Payroll {
   }
 
   function logHours(uint _hours)
-    public
     isValidEmployee(msg.sender)
     isValueBiggerThanZero(_hours)
     returns(uint)
@@ -83,7 +83,6 @@ contract Payroll {
   }
 
   function newEmployee(address addr, uint _rate)
-    public
     isOwner
     isValueBiggerThanZero(_rate)
     returns(address)
@@ -97,7 +96,6 @@ contract Payroll {
   }
 
   function payEmployee(address addr)
-    public
     isOwner
     isValidEmployee(addr)
     returns(uint)
