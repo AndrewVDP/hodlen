@@ -4,10 +4,12 @@ import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
 import payroll_artifacts from '../../build/contracts/Payroll.json'
+// import contractManager_artifacts from '../../build/contracts/ContractManager.json'
 
 var Payroll = contract(payroll_artifacts);
-var ropstenNetId = 3;
+// var ContractManager = contract(contractManager_artifacts);
 var MetamaskAccount;
+// var contractManagerAddr = '0xbd704868bb8c55427ea5025a0f7501b3b85963f8';
 
 window.App = {
   start: function() {
@@ -15,15 +17,16 @@ window.App = {
 
     // needs to be set before calling <conract>.new()
     Payroll.setProvider(web3.currentProvider);
+    // ContractManager.setProvider(web3.currentProvider);
 
     // remove for prod
-    // self.isMainNet().then(isMainNet => {
-    //   if (isMainNet) {
-    //     web3.currentProvider = null;
-    //     alert('switch to testnet');
-    //     return;
-    //   }
-    // });
+    self.isMainNet().then(isMainNet => {
+      if (isMainNet) {
+        web3.currentProvider = null;
+        alert('switch to testnet');
+        return;
+      }
+    });
 
     // get account from ethereum client
     web3.eth.getAccounts((err, accounts) => {
@@ -46,10 +49,22 @@ window.App = {
       web3.eth.defaultAccount = MetamaskAccount;
       var devAccounts = document.getElementById("devAccounts");
       devAccounts.innerHTML = MetamaskAccount;
+
+      // console.log('Creating new contract manager');
+      // ContractManager.new({from: MetamaskAccount}).then(data=>{
+      // });
     });
 
+    // ContractManager.at(contractManagerAddr).then(instance => {
+    //   console.log('found contract manager');
+    //   instance.getPayrollContract.call();
+    // }).then(contracts => {
+    //   console.log('contracts', contracts);
+    // }).catch(e => {
+    //   console.log('error finding contract', e);
+    // });
+
     var address = localStorage.getItem("contractAddress");
-    console.log('address', address);
     return Payroll.detectNetwork().then(id => {
       // set the contract address if it's found in localstorage
       if(address !== null) {
@@ -87,9 +102,10 @@ window.App = {
     employeeView.innerHTML = message;
   },
 
-  setContractAddress: function() {
+  setContractAddress: function(addr) {
+    var setAddr = addr || Payroll.address;
     var address = document.getElementById("contractAddress");
-    address.innerHTML = Payroll.address;
+    address.innerHTML = setAddr;
   },
 
   ethToWei: function(eth) {
@@ -230,21 +246,48 @@ window.App = {
 
     self.setStatus("Creating new contract, please wait...", "contractConnectionStatus");
     console.log('creating new contract');
-    return Payroll.new({ from: MetamaskAccount }).then(instance => {
-      console.log('foo');
-      Payroll.address = instance.address;
-      self.setContractAddress();
-      console.log('bar');
-      self.refreshBalance();
-      console.log('baz');
 
-      // store new contract address in localstorage
-      localStorage.setItem("contractAddress", Payroll.address);
-      self.setStatus("Contract Created!", "contractConnectionStatus");
-    }).catch(e => {
-      console.log('create contract error', e);
-      self.setStatus("Error creating contract", "contractConnectionStatus");
+    // ContractManager.at(contractManagerAddr).then(instance => {
+    //   console.log('contract manager instance', instance);
+    //   instance.addNewContract({ from: MetamaskAccount }); 
+    // }).then(contracts => {
+    //   console.log('contracts', contracts);
+    //   self.setContractAddress(contracts || contracts[0]);
+    // }).catch(e => {
+    //   console.log('contract manager error', e);
+    // });
+
+    var payrollContract = new web3.eth.Contract(payroll_artifacts.abi)
+
+    var transaction;
+
+    return payrollContract.deploy({
+      data: payroll_artifacts.bytecode,
+      arguments: []
     })
+    .send({ from: MetamaskAccount })
+    .on('error', e => {
+      console.log('error deploying new contract', e);
+      self.setStatus(`Error creating contract: \n ${e}`, "contractConnectionStatus");
+    })
+    .on('transactionHash', transactionHash => {
+      transaction = transactionHash;
+      self.setStatus("received transactionHash", "contractConnectionStatus");
+    })
+    .on('receipt', receipt => {
+      self.setStatus("received receipt", "contractConnectionStatus");
+    })
+    .on('confirmation', confirmation => {
+      self.setStatus("received confirmation", "contractConnectionStatus");
+    })
+    .then(instance => {
+      console.log('new payroll address', instance.options.address);
+      Payroll.address = instance.options.address;
+      self.setStatus("Contract Created!", "contractConnectionStatus");
+      localStorage.setItem("contractAddress", Payroll.address);
+      self.setContractAddress();
+      self.refreshBalance();
+    });
   },
 
   importContract: function() {
@@ -289,5 +332,6 @@ window.addEventListener('load', function() {
     console.log('No web3? You should consider trying MetaMask!')
     window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
   }
+  console.log('window.web3', window.web3);
   App.start();
 });

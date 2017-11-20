@@ -1,27 +1,25 @@
 pragma solidity ^0.4.11;
 
-/**
- * The ContractManager contract does this and that...
- */
 contract ContractManager {
 
-  struct contractList {
-    address ownerAddress;
-    address[] contracts;
+  struct MyContracts {
+    address payrollAddr;
   }
 
-  mapping (address => contractList) manager;
+  mapping(address => MyContracts) manager;
 
   function ContractManager() {
 
   }
 
-  function getContractsByOwner(address ownderAddr) constant returns(address[]) {
-    return manager[ownderAddr].contracts;
+  function getPayrollContract() constant returns(address) {
+    return manager[msg.sender].payrollAddr;
   }
 
-  function addNewContract() returns(bool res) {
-    
+  function addPayrollContract(address addr) returns(address) {
+    manager[msg.sender] = MyContracts(addr);
+
+    return manager[msg.sender].payrollAddr;
   }
 }
 
