@@ -12,21 +12,20 @@ var MetamaskAccount;
 var contractManagerAddr = '0xed28c32ce11378eb7a7fa6106a13442237442110';
 
 window.App = {
-  start: function() {
+  start: async function() {
     var self = this;
 
     // needs to be set before calling <conract>.new()
     Payroll.setProvider(web3.currentProvider);
     ContractManager.setProvider(web3.currentProvider);
 
-    // remove for prod
-    self.isMainNet().then(isMainNet => {
-      if (isMainNet) {
-        web3.currentProvider = null;
-        alert('switch to testnet');
-        return;
-      }
-    });
+    const isMainNet = await self.isMainNet();
+
+    if(isMainNet) {
+      web3.currentProvider = null;
+      alert('switch to testnet');
+      return;
+    }
 
     // get account from ethereum client
     web3.eth.getAccounts((err, accounts) => {
@@ -50,62 +49,62 @@ window.App = {
       var devAccounts = document.getElementById("devAccounts");
       devAccounts.innerHTML = MetamaskAccount;
 
+
       // console.log('Creating new contract manager');
-      // ContractManager.new({from: MetamaskAccount}).then(data=>{
-      // });
+      // ContractManager.new({ from: MetamaskAccount });
     });
 
-    // ContractManager.at(contractManagerAddr).then(instance => {
-    //   console.log('found contract manager');
-    //   instance.getPayrollContract.call();
-    // }).then(contract => {
+    // try {
+    //   const instance = await ContractManager.at(contractManagerAddr);
+    //   const contract = await instance.getPayrollContract.call();
     //   console.log('contract', contract);
-    // }).catch(e => {
-    //   console.log('error finding contract', e);
-    // });
+    // } catch(err) {
+    //   console.log('error finding contract', err);
+    // }
+  
+    const localStoreAddr = localStorage.getItem("payrollAddress");
 
-    var address = localStorage.getItem("contractAddress");
-    return Payroll.detectNetwork().then(id => {
-      // set the contract address if it's found in localstorage
-      if(address !== null) {
-        return Payroll.at(address).then(() => {
-          Payroll.address = address;
+    try {
+      await Payroll.detectNetwork();
+      if(localStoreAddr !== null) {
+        try {
+          await Payroll.at(localStoreAddr);
+          Payroll.address = localStoreAddr;
           self.setContractAddress();
           self.refreshBalance();
 
           return;
-        }).catch(e => {
+        } catch(err) {
           console.log('contract found in localstorage not found on blockchain');
-          var contractAddress = document.getElementById("contractAddress");
-          contractAddress.innerHTML = "No Contract found.";
+          let payrollAddress = document.getElementById("payrollAddress");
+          payrollAddress.innerHTML = "No Contract found.";
 
           return;
-        });
+        }
       }
 
-      var contractAddress = document.getElementById("contractAddress");
-      contractAddress.innerHTML = "No Contract found.";
+      let payrollAddress = document.getElementById("payrollAddress");
+      payrollAddress.innerHTML = "No Contract found.";
 
       return;
-    }).catch(e => {
-      console.log('error detecting network', e);
-    });
+    } catch(err) {
+      console.log('error detecting network', err);
+    }
   },
 
   setStatus: function(message, element) {
-    var status = document.getElementById(element);
+    const status = document.getElementById(element);
     status.innerHTML = message;
   },
 
   setEmployeeInfo: function(message) {
-    var employeeView = document.getElementById("employeeView");
+    const employeeView = document.getElementById("employeeView");
     employeeView.innerHTML = message;
   },
 
-  setContractAddress: function(addr) {
-    var setAddr = addr || Payroll.address;
-    var address = document.getElementById("contractAddress");
-    address.innerHTML = setAddr;
+  setContractAddress: function() {
+    const address = document.getElementById("payrollAddress");
+    address.innerHTML = Payroll.address;
   },
 
   ethToWei: function(eth) {
@@ -123,7 +122,7 @@ window.App = {
   },
 
   isMainNet: function() {
-    var self = this;
+    const self = this;
 
     return self.getNetowrkId().then(id => {
       if(id === 1) {
@@ -135,7 +134,7 @@ window.App = {
   },
 
   UpdateContractManager: async function() {
-    var self = this;
+    const self = this;
 
     console.log('contractManagerAddr', contractManagerAddr);
     const instance = await ContractManager.at(contractManagerAddr);
@@ -143,15 +142,20 @@ window.App = {
     console.log('Payroll.address', Payroll.address);
     const contract = await instance.addPayrollContract(Payroll.address, { from: MetamaskAccount });
     console.log('contract', contract);
+
+    const c = await instance.getPayrollContract.call();
+    const cc = await instance.getPayrollContract();
+    console.log('c', c);
+    console.log('cc', cc);
   },
 
   refreshBalance: async function() {
-    var self = this;
+    const self = this;
 
     try {
       const instance = await Payroll.at(Payroll.address);
       const value = await instance.getBalance.call({ from: MetamaskAccount });
-      var balance = document.getElementById("accountBalance");
+      const balance = document.getElementById("accountBalance");
       balance.innerHTML = self.weiToEth(value.valueOf());
     } catch (err) {
       console.log('Error getting balance', err);
@@ -159,11 +163,11 @@ window.App = {
   },
 
   insertEmployee: async function() {
-    var self = this;
+    const self = this;
 
-    var rateInEth = parseInt(document.getElementById("employeeRate").value);
-    var address = document.getElementById("employeeAddress").value;
-    var rateInWei = self.ethToWei(rateInEth);
+    const rateInEth = parseInt(document.getElementById("employeeRate").value);
+    const address = document.getElementById("employeeAddress").value;
+    const rateInWei = self.ethToWei(rateInEth);
 
     try {
       const instance = await Payroll.at(Payroll.address);
@@ -176,9 +180,9 @@ window.App = {
   },
 
   logHours: async function() {
-    var self = this;
+    const self = this;
 
-    var hours = parseInt(document.getElementById('hours').value);
+    const hours = parseInt(document.getElementById('hours').value);
 
     try {
       const instance = await Payroll.at(Payroll.address);
@@ -190,11 +194,11 @@ window.App = {
   },
 
   depositEth: async function() {
-    var self = this;
+    const self = this;
     self.setStatus("Starting deposit, please wait...", "status");
 
-    var eth = parseInt(document.getElementById('ethDeposit').value);
-    var wei = self.ethToWei(eth);
+    const eth = parseInt(document.getElementById('ethDeposit').value);
+    const wei = self.ethToWei(eth);
 
     try {
       const instance = await Payroll.at(Payroll.address);
@@ -206,10 +210,10 @@ window.App = {
     }
   },
 
-  getEmployeeRate: async function(address) {
-    var self = this;
+  getEmployeeRate: async function() {
+    const self = this;
 
-    var address = document.getElementById("address").value;
+    const address = document.getElementById("address").value;
 
     try {
       const instance = await Payroll.at(Payroll.address);
@@ -222,10 +226,10 @@ window.App = {
     }
   },
 
-  getEmployeeHours: async function(address) {
-    var self = this;
+  getEmployeeHours: async function() {
+    const self = this;
 
-    var address = document.getElementById("address").value;
+    const address = document.getElementById("address").value;
 
     try {
       const instance = await Payroll.at(Payroll.address);
@@ -237,10 +241,10 @@ window.App = {
     }
   },
 
-  payEmployee: async function(address) {
-    var self = this;
+  payEmployee: async function() {
+    const self = this;
 
-    var address = document.getElementById("address").value;
+    const address = document.getElementById("address").value;
 
     try {
       const instance = await Payroll.at(Payroll.address);
@@ -253,14 +257,14 @@ window.App = {
   },
 
   newPayrolContract: async function() {
-    var self = this;
+    const self = this;
 
     self.setStatus("Creating new contract, please wait...", "contractConnectionStatus");
     console.log('creating new contract');
 
-    var payrollContract = new web3.eth.Contract(payroll_artifacts.abi)
+    const payrollContract = new web3.eth.Contract(payroll_artifacts.abi)
 
-    var transaction;
+    let transaction;
 
     const instance = await payrollContract.deploy({
       data: payroll_artifacts.bytecode,
@@ -282,24 +286,24 @@ window.App = {
     console.log('new payroll address', instance.options.address);
     Payroll.address = instance.options.address;
     self.setStatus("Contract Created!", "contractConnectionStatus");
-    localStorage.setItem("contractAddress", Payroll.address);
+    localStorage.setItem("payrollAddress", Payroll.address);
     self.setContractAddress();
     self.refreshBalance();
     // self.UpdateContractManager();
   },
 
   importContract: async function() {
-    var self = this;
+    const self = this;
     
     self.setStatus("Importing new contract, please wait...", "contractConnectionStatus");
-    var address = document.getElementById("importContractAddress").value.trim();
+    const address = document.getElementById("importContractAddress").value.trim();
 
     try {
       const instance = Payroll.at(address);
       Payroll.address = address;
       self.setContractAddress();
       self.refreshBalance();
-      localStorage.setItem("contractAddress", Payroll.address);
+      localStorage.setItem("payrollAddress", Payroll.address);
       self.setStatus("Imported contract!", "contractConnectionStatus");
     } catch (err) {
       self.setStatus("Error importing contract", "contractConnectionStatus");
@@ -307,7 +311,7 @@ window.App = {
   },
 
   getEmployeeList: async function() {
-    var self = this;
+    const self = this;
 
     try {
       const instance = await Payroll.at(Payroll.address);
