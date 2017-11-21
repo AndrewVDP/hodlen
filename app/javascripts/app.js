@@ -4,12 +4,12 @@ import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
 import payroll_artifacts from '../../build/contracts/Payroll.json'
-// import contractManager_artifacts from '../../build/contracts/ContractManager.json'
+import contractManager_artifacts from '../../build/contracts/ContractManager.json'
 
 var Payroll = contract(payroll_artifacts);
-// var ContractManager = contract(contractManager_artifacts);
+var ContractManager = contract(contractManager_artifacts);
 var MetamaskAccount;
-// var contractManagerAddr = '0xbd704868bb8c55427ea5025a0f7501b3b85963f8';
+var contractManagerAddr = '0xed28c32ce11378eb7a7fa6106a13442237442110';
 
 window.App = {
   start: function() {
@@ -17,7 +17,7 @@ window.App = {
 
     // needs to be set before calling <conract>.new()
     Payroll.setProvider(web3.currentProvider);
-    // ContractManager.setProvider(web3.currentProvider);
+    ContractManager.setProvider(web3.currentProvider);
 
     // remove for prod
     self.isMainNet().then(isMainNet => {
@@ -58,8 +58,8 @@ window.App = {
     // ContractManager.at(contractManagerAddr).then(instance => {
     //   console.log('found contract manager');
     //   instance.getPayrollContract.call();
-    // }).then(contracts => {
-    //   console.log('contracts', contracts);
+    // }).then(contract => {
+    //   console.log('contract', contract);
     // }).catch(e => {
     //   console.log('error finding contract', e);
     // });
@@ -134,195 +134,191 @@ window.App = {
     })
   },
 
-  refreshBalance: function() {
+  UpdateContractManager: async function() {
     var self = this;
 
-    Payroll.at(Payroll.address).then(instance => {
-      return instance.getBalance.call({ from: MetamaskAccount });
-    }).then(value => {
+    console.log('contractManagerAddr', contractManagerAddr);
+    const instance = await ContractManager.at(contractManagerAddr);
+    console.log('instance', instance);
+    console.log('Payroll.address', Payroll.address);
+    const contract = await instance.addPayrollContract(Payroll.address, { from: MetamaskAccount });
+    console.log('contract', contract);
+  },
+
+  refreshBalance: async function() {
+    var self = this;
+
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const value = await instance.getBalance.call({ from: MetamaskAccount });
       var balance = document.getElementById("accountBalance");
       balance.innerHTML = self.weiToEth(value.valueOf());
-    }).catch(e => {
-      console.log('Error getting balance', e);
-    });
+    } catch (err) {
+      console.log('Error getting balance', err);
+    }
   },
 
-  insertEmployee: function() {
+  insertEmployee: async function() {
     var self = this;
 
-    var rateInWei = parseInt(document.getElementById("employeeRate").value);
+    var rateInEth = parseInt(document.getElementById("employeeRate").value);
     var address = document.getElementById("employeeAddress").value;
+    var rateInWei = self.ethToWei(rateInEth);
 
-    var rateInWei = self.ethToWei(rateInWei);
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const result = await instance.newEmployee(address, rateInWei, { from: MetamaskAccount });
+      console.log('employee inserted', result);
+    } catch (err) {
+      console.log('error when trying to create employee:', err);
+    }
 
-    return Payroll.at(Payroll.address).then(instance => {
-      return instance.newEmployee(address, rateInWei, { from: MetamaskAccount });
-    }).then(result => {
-      return console.log('employee inserted', result);
-    }).catch(e => {
-      return console.log('error when trying to create employee:', e);
-    });
   },
 
-  logHours: function() {
+  logHours: async function() {
     var self = this;
 
     var hours = parseInt(document.getElementById('hours').value);
-    return Payroll.at(Payroll.address).then(instance => {
-      return instance.logHours(hours, { from: MetamaskAccount });
-    }).then(result => {
+
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const result = await instance.logHours(hours, { from: MetamaskAccount });
       console.log('hours logged', result);
-    }).catch(e => {
-      console.log('error loggin hours', e);
-    })
+    } catch (err) {
+      console.log('error loggin hours', err);
+    }
   },
 
-  depositEth: function() {
+  depositEth: async function() {
     var self = this;
     self.setStatus("Starting deposit, please wait...", "status");
 
     var eth = parseInt(document.getElementById('ethDeposit').value);
     var wei = self.ethToWei(eth);
-    
-    return Payroll.at(Payroll.address).then(instance => {
-      return instance.deposit({ value: wei, from: MetamaskAccount });
-    }).then(result => {
+
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const result = await instance.deposit({ value: wei, from: MetamaskAccount });
       self.refreshBalance();
       self.setStatus("Eth deposited!", "status");
-    }).catch(e => {
+    } catch(err) {
       self.setStatus("error completing deposit", "status");
-    })
+    }
   },
 
-  getEmployeeRate: function(address) {
+  getEmployeeRate: async function(address) {
     var self = this;
 
     var address = document.getElementById("address").value;
 
-    return Payroll.at(Payroll.address).then(instance => {
-      return instance.getRate.call(address);
-    }).then(data => {
-      var rateInEth = self.weiToEth(data.valueOf());
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const data = await instance.getRate.call(address);
+      const rateInEth = self.weiToEth(data.valueOf());
       self.setEmployeeInfo(rateInEth);
       return rateInEth;
-    }).catch(e => {
+    } catch (err) {
       console.log('Error getting rate', e);
-    }); 
+    }
   },
 
-  getEmployeeHours: function(address) {
+  getEmployeeHours: async function(address) {
     var self = this;
 
     var address = document.getElementById("address").value;
 
-    return Payroll.at(Payroll.address).then(instance => {
-      return instance.getHours.call(address);
-    }).then(data => {
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const data = await instance.getHours.call(address);
       self.setEmployeeInfo(data.valueOf());
       return data.valueOf();
-    }).catch(e => {
+    } catch (err) {
       console.log('Error getting rate', e);
-    }); 
+    }
   },
 
-  payEmployee: function(address) {
+  payEmployee: async function(address) {
     var self = this;
 
     var address = document.getElementById("address").value;
 
-    return Payroll.at(Payroll.address).then(instance => {
-      return instance.payEmployee(address, { from: MetamaskAccount });
-    }).then(data => {
-      console.log('paid employee', data);
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const data = await instance.payEmployee(address, { from: MetamaskAccount });
       self.refreshBalance();
       self.setEmployeeInfo("Paid!");
-    }).catch(e => {
+    } catch (err) {
       console.log('Error paying employee', e);
-    }); 
+    }
   },
 
-  newPayrolContract: function() {
+  newPayrolContract: async function() {
     var self = this;
 
     self.setStatus("Creating new contract, please wait...", "contractConnectionStatus");
     console.log('creating new contract');
 
-    // ContractManager.at(contractManagerAddr).then(instance => {
-    //   console.log('contract manager instance', instance);
-    //   instance.addNewContract({ from: MetamaskAccount }); 
-    // }).then(contracts => {
-    //   console.log('contracts', contracts);
-    //   self.setContractAddress(contracts || contracts[0]);
-    // }).catch(e => {
-    //   console.log('contract manager error', e);
-    // });
-
     var payrollContract = new web3.eth.Contract(payroll_artifacts.abi)
 
     var transaction;
 
-    return payrollContract.deploy({
+    const instance = await payrollContract.deploy({
       data: payroll_artifacts.bytecode,
       arguments: []
-    })
-    .send({ from: MetamaskAccount })
-    .on('error', e => {
+    }).send({
+      from: MetamaskAccount
+    }).on('error', e => {
       console.log('error deploying new contract', e);
       self.setStatus(`Error creating contract: \n ${e}`, "contractConnectionStatus");
-    })
-    .on('transactionHash', transactionHash => {
+    }).on('transactionHash', transactionHash => {
       transaction = transactionHash;
       self.setStatus("received transactionHash", "contractConnectionStatus");
-    })
-    .on('receipt', receipt => {
+    }).on('receipt', receipt => {
       self.setStatus("received receipt", "contractConnectionStatus");
-    })
-    .on('confirmation', confirmation => {
+    }).on('confirmation', confirmation => {
       self.setStatus("received confirmation", "contractConnectionStatus");
-    })
-    .then(instance => {
-      console.log('new payroll address', instance.options.address);
-      Payroll.address = instance.options.address;
-      self.setStatus("Contract Created!", "contractConnectionStatus");
-      localStorage.setItem("contractAddress", Payroll.address);
-      self.setContractAddress();
-      self.refreshBalance();
     });
+
+    console.log('new payroll address', instance.options.address);
+    Payroll.address = instance.options.address;
+    self.setStatus("Contract Created!", "contractConnectionStatus");
+    localStorage.setItem("contractAddress", Payroll.address);
+    self.setContractAddress();
+    self.refreshBalance();
+    // self.UpdateContractManager();
   },
 
-  importContract: function() {
+  importContract: async function() {
     var self = this;
     
     self.setStatus("Importing new contract, please wait...", "contractConnectionStatus");
-
     var address = document.getElementById("importContractAddress").value.trim();
 
-    return Payroll.at(address).then(() => {
+    try {
+      const instance = Payroll.at(address);
       Payroll.address = address;
       self.setContractAddress();
       self.refreshBalance();
       localStorage.setItem("contractAddress", Payroll.address);
       self.setStatus("Imported contract!", "contractConnectionStatus");
-    }).catch(e => {
+    } catch (err) {
       self.setStatus("Error importing contract", "contractConnectionStatus");
-    });
+    }
   },
 
-  getEmployeeList: function() {
+  getEmployeeList: async function() {
     var self = this;
 
-    console.log('get employee list');
-    return Payroll.at(Payroll.address).then(function(instance) {
-      return instance.getEmployeeList.call();
-    }).then(function(emplList) {
+    try {
+      const instance = await Payroll.at(Payroll.address);
+      const emplList = await instance.getEmployeeList.call();
       console.log(emplList);
-      return emplList;
-    }).catch(function(e) {
-      console.log('error getting employee list', e);
-      return e;
-    })
+      return emplList;  
+    } catch (err) {
+      console.log('error getting employee list', err);
+      return err;
+    }
   }
-
 };
 
 window.addEventListener('load', function() {
@@ -332,6 +328,5 @@ window.addEventListener('load', function() {
     console.log('No web3? You should consider trying MetaMask!')
     window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
   }
-  console.log('window.web3', window.web3);
   App.start();
 });
